@@ -22,5 +22,3 @@ def press(key):
 
 with Listener(on_press=press) as li:
     li.join()
-
-

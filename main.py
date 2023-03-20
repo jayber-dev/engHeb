@@ -43,7 +43,8 @@ letters = {
 
 backspace_count = 0
 events_count = 0 
-
+start_time = 0
+diff_time = 0
 class MyExeption(Exception):
     pass
 
@@ -66,12 +67,20 @@ def translate(string):
 
 
 def OnKeyboardEventDown(event):
+    global start_time
     global events_count
     global captured_string
     global backspace_count
+    global diff_time
     # print(event.Ascii)
     events_count += 1
+    if start_time == 0:
+        start_time = (time.time())
     
+    diff_time = (time.time())
+    if diff_time - start_time > 5:
+        start_time = 0
+        captured_string = ""
     # print(events_count)
     if event.Ascii == 23: # ctrl+w to translate
         data = translate(captured_string)
@@ -125,6 +134,7 @@ def OnKeyboardEventUp(event):
     global captured_string
     global backspace_count
     global events_count
+    global start_time
     # print(event.Key)    
     if backspace_count > 0:
         backspace_count = 0
