@@ -1,6 +1,7 @@
 # to be used in windows
 import win32api
 # import win32console
+import keyboard
 # import win32gui
 import win32con
 import pythoncom
@@ -45,9 +46,10 @@ backspace_count = 0
 events_count = 0 
 start_time = 0
 diff_time = 0
+translate_press_count = 0
+
 class MyExeption(Exception):
     pass
-
 
 main_thread_id = win32api.GetCurrentThreadId()
 combo = set()
@@ -57,11 +59,22 @@ def translate(string):
     global letters
     
     translated = ''
-    print(f'string to translate {string}')
     for i in range(len(string)):
-        for k in letters:
-            if string[i] == k:
-                translated += (letters[string[i]])
+        win32api.keybd_event(8,0,0,0)
+    
+    print(type(string))
+    keyboard.write(string)
+    # for i in range(len(string)):
+    #     print(ord(string[i]))
+    #     win32api.keybd_event(ord(string[i]),0,0,0)
+
+    print(f'string to translate {string}')
+    # for i in range(len(string)):
+    #     win32api.keybd_event(8,0,0,0)
+    #     for k in letters:
+    #         if string[i] == k:
+    #             translated += (letters[string[i]])
+    
     
     return translated
 
@@ -72,18 +85,23 @@ def OnKeyboardEventDown(event):
     global captured_string
     global backspace_count
     global diff_time
-    # print(event.Ascii)
+    global translate_press_count
+    
     events_count += 1
     if start_time == 0:
         start_time = (time.time())
     
     diff_time = (time.time())
+
     if diff_time - start_time > 5:
         start_time = 0
         captured_string = ""
     # print(events_count)
-    if event.Ascii == 23: # ctrl+w to translate
-        data = translate(captured_string)
+
+    if translate_press_count == 0:
+        if event.Ascii == 17: # ctrl+w to translate
+            translate_press_count += 1
+            data = translate(captured_string)
         # print('ctrl + r')
 
     if event.Ascii == 13:
@@ -94,8 +112,9 @@ def OnKeyboardEventDown(event):
         win32api.Beep(3000,10)
         win32api.PostQuitMessage(1)
        
-    if event.Ascii >= 32:
+    if event.Ascii >= 32: # puts the key into the string
         captured_string += chr(event.Ascii)
+        
 
     if backspace_count == 0 or events_count > 1:
         backspace_count += 1  
@@ -115,14 +134,17 @@ def OnKeyboardEventDown(event):
     # print('Key: %s' % event.Key)
     # print('KeyID: %s' % event.KeyID)
     # print('ScanCode: %s' % event.ScanCode)
+    
     # print('Extended: %s' % event.Extended)
     # print('Injected: %s' % event.Injected)
     # print('Alt %s' % event.Alt)
     # print('Transition %s' % event.Transition)
 
 #   print('---')
-    os.system('cls')
+    # os.system('cls')
     print(captured_string)
+    
+    # print(event.Ascii)
     try:
         print(data)
     except:
@@ -135,12 +157,15 @@ def OnKeyboardEventUp(event):
     global backspace_count
     global events_count
     global start_time
+    global translate_press_count
     # print(event.Key)    
     if backspace_count > 0:
         backspace_count = 0
         if event.Ascii == 8: 
             backspace_count = 0 
     
+    if translate_press_count > 0:
+        translate_press_count = 0
     
     events_count = 0
     return True
